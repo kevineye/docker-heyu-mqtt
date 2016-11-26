@@ -10,6 +10,7 @@ my $config = {
     mqtt_user => $ENV{MQTT_USER},
     mqtt_password => $ENV{MQTT_PASSWORD},
     mqtt_prefix => $ENV{MQTT_PREFIX} || 'home/x10',
+    mqtt_retain_re => qr/$ENV{MQTT_RETAIN_RE}/i || qr//, # retain everything
     heyu_cmd => $ENV{HEYU_CMD} || 'heyu',
 };
 
@@ -32,7 +33,7 @@ sub receive_mqtt_set {
 
 sub send_mqtt_status {
     my ($device, $status) = @_;
-    $mqtt->publish(topic => "$config->{mqtt_prefix}/$device", message => sprintf('{"state":"%s"}', $status ? 'ON' : 'OFF'), retain => 1);
+    $mqtt->publish(topic => "$config->{mqtt_prefix}/$device", message => sprintf('{"state":"%s"}', $status ? 'ON' : 'OFF'), retain => scalar($device =~ $config->{mqtt_retain_re}));
 }
 
 my $addr_queue = {};
